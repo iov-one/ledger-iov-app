@@ -170,6 +170,12 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     extractBip44(rx, OFFSET_DATA);
 
                     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+                    uint8_t testnet = (G_io_apdu_buffer[OFFSET_P2] != 0);
+
+                    app_set_hrp("iov");
+                    if (testnet)
+                        app_set_hrp("tiov");
+
                     if (requireConfirmation) {
                         app_fill_address();
                         view_address_show();

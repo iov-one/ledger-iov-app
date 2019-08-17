@@ -55,6 +55,7 @@ extern view_t viewdata;
 typedef enum {
     view_no_error = 0,
     view_no_data = 1,
+    view_error_detected = 2
 } view_error_t;
 
 #define print_title(...) snprintf(viewdata.title, sizeof(viewdata.title), __VA_ARGS__)
@@ -75,13 +76,25 @@ typedef enum {
 ///////////////////////////////////////////////
 
 void view_idle_show_impl();
+
 void view_address_show_impl();
+
+void view_error_show_impl();
+
 void view_sign_show_impl();
 
 void h_address_accept(unsigned int _);
+
+void h_error_accept(unsigned int _);
+
 void h_sign_accept(unsigned int _);
+
 void h_sign_reject(unsigned int _);
+
 void h_review_init();
+
 void h_review_increase();
+
 void h_review_decrease();
+
 view_error_t h_review_update_data();

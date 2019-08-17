@@ -15,54 +15,6 @@
 ********************************************************************************/
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-#include <stddef.h>
-
-// TODO: create a single toString
-typedef struct {
-    int64_t whole;
-    int64_t fractional;
-    uint8_t *ticker;
-    uint8_t tickerLen;
-} parser_coin_t;
-
-typedef struct {
-    uint8_t *payer;
-    uint16_t payerLen;
-    parser_coin_t coin;
-} parser_fees_t;
-
-typedef struct {
-    uint32_t metadata;
-    uint8_t *source;
-    uint16_t sourceLen;
-    uint8_t *destination;
-    uint16_t destinationLen;
-    parser_coin_t amount;
-    uint8_t *memo;
-    uint16_t memoLen;
-    uint8_t *ref;
-    uint16_t refLen;
-} parser_sendmsg_t;
-
-typedef struct {
-    uint8_t *version;
-    uint8_t chainIDLen;
-    uint8_t *chainID;
-    int64_t *nonce;
-    parser_fees_t fees;
-    parser_sendmsg_t sendmsg;
-} parser_tx_t;
-
-void parser_coinInit(parser_coin_t *coin);
-void parser_feesInit(parser_fees_t *fees);
-void parser_sendmsgInit(parser_sendmsg_t *msg);
-void parser_txInit(parser_tx_t *tx);
-
 //version | len(chainID) | chainID      | nonce             | signBytes
 //4bytes  | uint8        | ascii string | int64 (bigendian) | serialized transaction
 
@@ -80,6 +32,131 @@ void parser_txInit(parser_tx_t *tx);
 //?, 1    Whole
 //?, 2    Fractional
 //?, 3    Ticker
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+#include <stddef.h>
+
+#define HRP_TESTNET          "tiov"
+#define HRP_MAINNET          "iov"
+#define CHAINID_MAINNET      "iov-mainnet"
+#define CHAINID_MAINNET_LEN  11
+
+#define TX_BUFFER_MIN       4
+#define TX_CHAINIDLEN_MAX   20
+
+#define PBIDX_METADATA_SCHEMA      1
+
+typedef struct {
+    // These bits are to avoid duplicated fields
+    struct {
+        unsigned int schema : 1;
+    } seen;
+
+    uint32_t schema;
+} parser_metadata_t;
+
+#define PBIDX_COIN_WHOLE           1
+#define PBIDX_COIN_FRACTIONAL      2
+#define PBIDX_COIN_TICKER          3
+
+typedef struct {
+    // These bits are to avoid duplicated fields
+    struct {
+        unsigned int whole : 1;
+        unsigned int fractional : 1;
+        unsigned int ticker : 1;
+    } seen;
+
+    int64_t whole;
+    int64_t fractional;
+    const uint8_t *tickerPtr;
+    uint16_t tickerLen;
+} parser_coin_t;
+
+#define PBIDX_FEES_PAYER           2
+#define PBIDX_FEES_COIN            3
+
+typedef struct {
+    // These bits are to avoid duplicated fields
+    struct {
+        unsigned int payer : 1;
+        unsigned int coin : 1;
+    } seen;
+
+    const uint8_t *payerPtr;
+    uint16_t payerLen;
+
+    const uint8_t *coinPtr;
+    uint16_t coinLen;
+    parser_coin_t coin;
+} parser_fees_t;
+
+#define PBIDX_SENDMSG_METADATA          1
+#define PBIDX_SENDMSG_SOURCE            2
+#define PBIDX_SENDMSG_DESTINATION       3
+#define PBIDX_SENDMSG_AMOUNT            4
+#define PBIDX_SENDMSG_MEMO              5
+#define PBIDX_SENDMSG_REF               6
+
+typedef struct {
+    // These bits are to avoid duplicated fields
+    struct {
+        unsigned int metadata : 1;
+        unsigned int source : 1;
+        unsigned int destination : 1;
+        unsigned int amount : 1;
+        unsigned int memo : 1;
+        unsigned int ref : 1;
+    } seen;
+
+    const uint8_t *metadataPtr;
+    uint16_t metadataLen;
+    parser_metadata_t metadata;
+
+    const uint8_t *sourcePtr;
+    uint16_t sourceLen;
+
+    const uint8_t *destinationPtr;
+    uint16_t destinationLen;
+
+    const uint8_t *amountPtr;
+    uint16_t amountLen;
+    parser_coin_t amount;
+
+    const uint8_t *memoPtr;
+    uint16_t memoLen;
+
+    const uint8_t *refPtr;
+    uint16_t refLen;
+} parser_sendmsg_t;
+
+#define PBIDX_TX_FEES           1
+#define PBIDX_TX_SENDMSG        51
+
+typedef struct {
+    const uint32_t *version;
+    uint8_t chainIDLen;
+    const uint8_t *chainID;
+    int64_t nonce;
+
+    ////
+    const uint8_t *feesPtr;
+    uint16_t feesLen;
+    parser_fees_t fees;             // PB Field 1
+
+    const uint8_t *sendmsgPtr;
+    uint16_t sendmsgLen;
+    parser_sendmsg_t sendmsg;       // PB Field 51
+} parser_tx_t;
+
+void parser_coinInit(parser_coin_t *coin);
+void parser_feesInit(parser_fees_t *fees);
+void parser_sendmsgInit(parser_sendmsg_t *msg);
+void parser_txInit(parser_tx_t *tx);
 
 #ifdef __cplusplus
 }

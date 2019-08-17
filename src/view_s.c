@@ -68,6 +68,14 @@ static const bagl_element_t view_review[] = {
     UI_LabelLine(UIID_LABEL + 2, 0, 30, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, viewdata.value2),
 };
 
+static const bagl_element_t view_error[] = {
+    UI_FillRectangle(0, 0, 0, UI_SCREEN_WIDTH, UI_SCREEN_HEIGHT, 0x000000, 0xFFFFFF),
+    UI_Icon(0, 128 - 7, 0, 7, 7, BAGL_GLYPH_ICON_CHECK),
+    UI_LabelLine(UIID_LABEL + 0, 0, 8, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, viewdata.key),
+    UI_LabelLine(UIID_LABEL + 0, 0, 19, UI_SCREEN_WIDTH, UI_11PX, UI_WHITE, UI_BLACK, viewdata.value),
+    UI_LabelLineScrolling(UIID_LABELSCROLL, 0, 30, 128, UI_11PX, UI_WHITE, UI_BLACK, viewdata.value2),
+};
+
 static unsigned int view_address_button(unsigned int button_mask, unsigned int button_mask_counter) {
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT:
@@ -75,6 +83,18 @@ static unsigned int view_address_button(unsigned int button_mask, unsigned int b
             break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
             h_address_accept(0);
+            break;
+    }
+    return 0;
+}
+
+static unsigned int view_error_button(unsigned int button_mask, unsigned int button_mask_counter) {
+    switch (button_mask) {
+        case BUTTON_EVT_RELEASED | BUTTON_LEFT | BUTTON_RIGHT:
+        case BUTTON_EVT_RELEASED | BUTTON_LEFT:
+            break;
+        case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
+            h_error_accept(0);
             break;
     }
     return 0;
@@ -117,22 +137,41 @@ const bagl_element_t *view_prepro(const bagl_element_t *element) {
 void h_review_button_left() {
     h_review_decrease();
 
-    if (h_review_update_data() == tx_no_data) {
-        view_sign_show_s();
-    } else {
-        view_review_show();
+    view_error_t err = h_review_update_data();
+    switch(err) {
+        case view_no_error:
+            view_review_show();
+            break;
+        case view_no_data:
+            view_sign_show_s();
+            break;
+        case view_error_detected:
+        default:
+            view_error_show();
+            break;
     }
+
     UX_WAIT();
 }
 
 void h_review_button_right() {
     h_review_increase();
 
-    if (h_review_update_data() == tx_no_data) {
-        view_sign_show_s();
-    } else {
-        view_review_show();
+    view_error_t err = h_review_update_data();
+
+    switch(err) {
+        case view_no_error:
+            view_review_show();
+            break;
+        case view_no_data:
+            view_sign_show_s();
+            break;
+        case view_error_detected:
+        default:
+            view_error_show();
+            break;
     }
+
     UX_WAIT();
 }
 
@@ -150,13 +189,25 @@ void view_address_show_impl() {
     UX_DISPLAY(view_address, view_prepro);
 }
 
+void view_error_show_impl() {
+    UX_DISPLAY(view_error, view_prepro);
+}
+
 void view_sign_show_impl() {
     h_review_init();
 
-    if (h_review_update_data() == tx_no_data) {
-        view_sign_show_s();
-    } else {
-        view_review_show();
+    view_error_t err = h_review_update_data();
+    switch(err) {
+        case view_no_error:
+            view_review_show();
+            break;
+        case view_no_data:
+            view_sign_show_s();
+            break;
+        case view_error_detected:
+        default:
+            view_error_show();
+            break;
     }
 }
 

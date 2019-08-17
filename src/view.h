@@ -32,6 +32,9 @@ void view_init();
 /// view_idle (idle view - main menu + status)
 void view_idle_show(unsigned int ignored);
 
+/// view_error (error view)
+void view_error_show();
+
 // shows address in the screen
 void view_address_show();
 

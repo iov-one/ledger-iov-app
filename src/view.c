@@ -38,6 +38,13 @@ void h_address_accept(unsigned int _) {
     app_reply_address();
 }
 
+void h_error_accept(unsigned int _) {
+    UNUSED(_);
+    view_idle_show(0);
+    UX_WAIT();
+    app_reply_address();
+}
+
 void h_sign_accept(unsigned int _) {
     UNUSED(_);
 
@@ -112,10 +119,7 @@ view_error_t h_review_update_data() {
     } while (viewdata.pageCount == 0);
 
     if (err != tx_no_error) {
-        print_key("Error");
-        print_value("%d", err);
-        // FIXME: Reject and fail immediately, return error message?
-        return view_no_error;
+        return view_error_detected;
     }
 
     splitValueField();
@@ -143,9 +147,13 @@ void view_address_show() {
     view_address_show_impl();
 }
 
+void view_error_show() {
+    snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "ERROR");
+    snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "SHOWING DATA");
+    splitValueField();
+    view_error_show_impl();
+}
+
 void view_sign_show() {
-    // FIXME:
-    snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "WORK IN");
-    snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "PROGRESS");
     view_sign_show_impl();
 }

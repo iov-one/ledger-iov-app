@@ -15,6 +15,7 @@
 ********************************************************************************/
 
 #include "crypto.h"
+#include "iov.h"
 #include <bech32.h>
 
 uint32_t bip44Path[5];
@@ -92,23 +93,53 @@ uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t
 }
 #else
 
-void crypto_extractPublicKey(uint32_t bip44Path[BIP44_LEN_DEFAULT], uint8_t *pubKey) {
+void crypto_extractPublicKey(uint32_t path[BIP44_LEN_DEFAULT], uint8_t *pubKey) {
+    // Empty version for non-Ledger devices
     MEMSET(pubKey, 0, 32);
-};
+}
 
-uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
+uint16_t crypto_sign(uint8_t *signature,
+                     uint16_t signatureMaxlen,
+                     const uint8_t *message,
+                     uint16_t messageLen) {
+    // Empty version for non-Ledger devices
     return 0;
-};
+}
+
+#define CX_SHA256_SIZE 32
+
+int cx_hash_sha256(const unsigned char *in, unsigned int len, unsigned char *out, unsigned int out_len) {
+    // Empty version for non-Ledger devices
+    // Mock with picosha2
+    return 0;
+}
+
 #endif
 
+char *hrp;
+
+void crypto_set_hrp(char *p) {
+    hrp = p;
+}
+
 uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len) {
+    if (buffer_len < ED25519_PK_LEN + 30) {
+        return 0;
+    }
+
     // extract pubkey (first 32 bytes)
     crypto_extractPublicKey(bip44Path, buffer);
 
-    // FIXME: Add support for other HRPs
-    const char *hrp = "iov";
-    char *addr = (char *) (buffer + 32);
+    char tmp[IOV_PK_PREFIX_LEN + ED25519_PK_LEN];
+    strcpy(tmp, IOV_PK_PREFIX);
+    MEMCPY(tmp + IOV_PK_PREFIX_LEN, buffer, ED25519_PK_LEN);
 
-    bech32EncodeFromBytes(addr, hrp, buffer, 32);
-    return 32 + strlen(addr);
-};
+    //
+    uint8_t hash[CX_SHA256_SIZE];
+    cx_hash_sha256((uint8_t *) tmp, IOV_PK_PREFIX_LEN + ED25519_PK_LEN,
+                   hash, CX_SHA256_SIZE);
+
+    char *addr = (char *) (buffer + ED25519_PK_LEN);
+    bech32EncodeFromBytes(addr, hrp, hash, 20);
+    return ED25519_PK_LEN + strlen(addr);
+}

@@ -1,6 +1,5 @@
 /*******************************************************************************
-*   (c) 2016 Ledger
-*   (c) 2019 ZondaX GmbH
+*  (c) 2019 ZondaX GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -16,14 +15,28 @@
 ********************************************************************************/
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
+#include <stddef.h>
 
-uint8_t app_sign();
+#define TRUE  1
+#define FALSE 0
 
-void app_set_hrp(char *p);
+#define HRP_TESTNET     "tiov"
+#define HRP_MAINNET     "iov"
+#define CHAINID_MAINNET  "iov-mainnet"
 
-uint8_t app_fill_address();
+#define IOV_PK_PREFIX      "sigs/ed25519/"
+#define IOV_PK_PREFIX_LEN  13
+#define IOV_TICKER_MAXLEN   5
+#define IOV_ADDR_MAXLEN    45
 
-void app_reply_address();
+#define IOV_WHOLE_DIGITS   15
+#define IOV_FRAC_DIGITS    9
 
-void app_reply_error();
+#ifdef __cplusplus
+}
+#endif
