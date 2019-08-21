@@ -37,8 +37,8 @@
 #define INS_GET_ADDR_ED25519            1
 #define INS_SIGN_ED25519                2
 
-#define BIP44_PATH_0                    (0x80000000 | 0x2c)
-#define BIP44_PATH_1                    (0x80000000 | 0xea)
+#define BIP32_PATH_0                    (0x80000000 | 0x2c)
+#define BIP32_PATH_1                    (0x80000000 | 0xea)
 
 void app_init();
 

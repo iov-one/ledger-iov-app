@@ -77,8 +77,6 @@ The general structure of commands and responses is as follows:
 | Path[0]    | bytes (4)       | Derivation Path Data   | 44             |
 | Path[1]    | bytes (4)       | Derivation Path Data   | 354            |
 | Path[2]    | bytes (4)       | Derivation Path Data   | ??             |
-| Path[3]    | bytes (4)       | Derivation Path Data   | ??             |
-| Path[4]    | bytes (4)       | Derivation Path Data   | ??             |
 
 
 #### Response
@@ -115,8 +113,6 @@ All other packets/chunks should contain message to sign
 | Path[0]    | byte (4) | Derivation Path Data   | 44        |
 | Path[1]    | byte (4) | Derivation Path Data   | 234       |
 | Path[2]    | byte (4) | Derivation Path Data   | ?         |
-| Path[3]    | byte (4) | Derivation Path Data   | ?         |
-| Path[4]    | byte (4) | Derivation Path Data   | ?         |
 
 *Other Chunks/Packets*
 

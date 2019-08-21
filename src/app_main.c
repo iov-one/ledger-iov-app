@@ -88,22 +88,22 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     return 0;
 }
 
-void extractBip44(uint32_t rx, uint32_t offset) {
-    if ((rx - offset) < 4 * BIP44_LEN_DEFAULT) {
+void extractBip32(uint32_t rx, uint32_t offset) {
+    if ((rx - offset) < 4 * BIP32_LEN_DEFAULT) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    memcpy(bip44Path, G_io_apdu_buffer + offset, 20);
+    memcpy(bip32Path, G_io_apdu_buffer + offset, 4 * BIP32_LEN_DEFAULT);
 
     // Check values
-    if (bip44Path[0] != BIP44_PATH_0 ||
-        bip44Path[1] != BIP44_PATH_1) {
+    if (bip32Path[0] != BIP32_PATH_0 ||
+        bip32Path[1] != BIP32_PATH_1) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 
     // Check all items are hardened
-    for (int i = 0; i < BIP44_LEN_DEFAULT; i++) {
-        if ( (bip44Path[0] & 0x80000000) == 0) {
+    for (int i = 0; i < BIP32_LEN_DEFAULT; i++) {
+        if ( (bip32Path[0] & 0x80000000) == 0) {
             THROW(APDU_CODE_DATA_INVALID);
         }
     }
@@ -122,7 +122,7 @@ bool process_chunk(volatile uint32_t *tx, uint32_t rx, bool getBip32) {
         tx_initialize();
         tx_reset();
 
-        extractBip44(rx, OFFSET_DATA);
+        extractBip32(rx, OFFSET_DATA);
 
         return packageIndex == packageCount;
     }
@@ -167,7 +167,7 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                 }
 
                 case INS_GET_ADDR_ED25519: {
-                    extractBip44(rx, OFFSET_DATA);
+                    extractBip32(rx, OFFSET_DATA);
 
                     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
                     uint8_t testnet = (G_io_apdu_buffer[OFFSET_P2] != 0);

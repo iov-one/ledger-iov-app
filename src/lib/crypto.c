@@ -18,12 +18,12 @@
 #include "iov.h"
 #include <bech32.h>
 
-uint32_t bip44Path[5];
+uint32_t bip32Path[BIP32_LEN_DEFAULT];
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
-void crypto_extractPublicKey(uint32_t bip44Path[BIP44_LEN_DEFAULT], uint8_t *pubKey) {
+void crypto_extractPublicKey(uint32_t bip32Path[BIP32_LEN_DEFAULT], uint8_t *pubKey) {
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
@@ -32,8 +32,8 @@ void crypto_extractPublicKey(uint32_t bip44Path[BIP44_LEN_DEFAULT], uint8_t *pub
     os_perso_derive_node_bip32_seed_key(
             HDW_ED25519_SLIP10,
             CX_CURVE_Ed25519,
-            bip44Path,
-            BIP44_LEN_DEFAULT,
+            bip32Path,
+            BIP32_LEN_DEFAULT,
             privateKeyData,
             NULL,
             NULL,
@@ -65,8 +65,8 @@ uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t
     os_perso_derive_node_bip32_seed_key(
             HDW_ED25519_SLIP10,
             CX_CURVE_Ed25519,
-            bip44Path,
-            BIP44_LEN_DEFAULT,
+            bip32Path,
+            BIP32_LEN_DEFAULT,
             privateKeyData,
             NULL,
             NULL,
@@ -93,7 +93,7 @@ uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t
 }
 #else
 
-void crypto_extractPublicKey(uint32_t path[BIP44_LEN_DEFAULT], uint8_t *pubKey) {
+void crypto_extractPublicKey(uint32_t path[BIP32_LEN_DEFAULT], uint8_t *pubKey) {
     // Empty version for non-Ledger devices
     MEMSET(pubKey, 0, 32);
 }
@@ -128,7 +128,7 @@ uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len) {
     }
 
     // extract pubkey (first 32 bytes)
-    crypto_extractPublicKey(bip44Path, buffer);
+    crypto_extractPublicKey(bip32Path, buffer);
 
     char tmp[IOV_PK_PREFIX_LEN + ED25519_PK_LEN];
     strcpy(tmp, IOV_PK_PREFIX);

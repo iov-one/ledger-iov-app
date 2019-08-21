@@ -22,13 +22,13 @@
 extern "C" {
 #endif
 
-#define BIP44_LEN_DEFAULT 5
+#define BIP32_LEN_DEFAULT 3
 #define ED25519_PK_LEN 32
 
-extern uint32_t bip44Path[BIP44_LEN_DEFAULT];
+extern uint32_t bip32Path[BIP32_LEN_DEFAULT];
 extern char *hrp;
 
-void crypto_extractPublicKey(uint32_t bip44Path[BIP44_LEN_DEFAULT], uint8_t *pubKey);
+void crypto_extractPublicKey(uint32_t bip32Path[BIP32_LEN_DEFAULT], uint8_t *pubKey);
 
 void crypto_set_hrp(char *p);
 
