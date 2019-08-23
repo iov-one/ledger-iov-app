@@ -69,6 +69,8 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "Unexpected field";
         case parser_duplicated_field:
             return "Unexpected duplicated field";
+        case parser_unexpected_chain:
+            return "Unexpected chain";
         default:
             return "Unrecognized error code";
     }
@@ -509,18 +511,25 @@ parser_error_t parser_Tx(parser_context_t *ctx) {
     return parser_ok;
 }
 
-const char *parser_getHRP(const uint8_t *chainID, uint16_t chainIDLen) {
-    if (chainIDLen != CHAINID_MAINNET_LEN)
-        return HRP_TESTNET;
+bool_t parser_IsMainnet(const uint8_t *chainID, uint16_t chainIDLen) {
+    if (chainIDLen != APP_MAINNET_CHAINID_LEN)
+        return bool_true;
 
-    const char *expectedChainID = CHAINID_MAINNET;
+    const char *expectedChainID = APP_MAINNET_CHAINID;
     for (uint16_t i = 0; i < chainIDLen; i++) {
         if (chainID[i] != expectedChainID[i]) {
-            return HRP_TESTNET;
+            return bool_false;
         }
     }
 
-    return HRP_MAINNET;
+    return bool_true;
+}
+
+const char *parser_getHRP(const uint8_t *chainID, uint16_t chainIDLen) {
+    if (parser_IsMainnet(chainID, chainIDLen)==bool_true)
+        return APP_MAINNET_HRP;
+
+    return APP_TESTNET_HRP;
 }
 
 parser_error_t parser_getAddress(const uint8_t *chainID, uint16_t chainIDLen,
@@ -529,7 +538,9 @@ parser_error_t parser_getAddress(const uint8_t *chainID, uint16_t chainIDLen,
     if (addrLen < IOV_ADDR_MAXLEN) {
         return parser_unexpected_buffer_end;
     }
+
     bech32EncodeFromBytes(addr, parser_getHRP(chainID, chainIDLen), ptr, len);
+
     return parser_ok;
 }
 
@@ -556,7 +567,7 @@ parser_error_t parser_arrayToString(char *out, uint16_t outLen,
 
     // Limit chunk size
     int16_t chunkSize = outLen - 1;
-    if (chunkSize > inLen - offset ) {
+    if (chunkSize > inLen - offset) {
         chunkSize = inLen - offset;
     }
 

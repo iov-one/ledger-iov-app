@@ -19,35 +19,59 @@
 #include "parser.h"
 #include "iov.h"
 
+#ifdef MAINNET_ENABLED
+#define FIELD_TOTAL_COUNT 5
+
+#define FIELD_CHAINID -100
+#define FIELD_SOURCE 0
+#define FIELD_DESTINATION 1
+#define FIELD_AMOUNT 2
+#define FIELD_FEE 3
+#define FIELD_MEMO 4
+#else
+#define FIELD_TOTAL_COUNT 6
+
+#define FIELD_CHAINID 0
+#define FIELD_SOURCE 1
+#define FIELD_DESTINATION 2
+#define FIELD_AMOUNT 3
+#define FIELD_FEE 4
+#define FIELD_MEMO 5
+#endif
+
+// * optional chainid for testnet mode
 // 0  source
 // 1  destination
 // 2  amount  value / ticker
 // 3  fees  value / ticker
 // 4  memo                      (when exists)
 
+#define UI_BUFFER 256
+
 parser_error_t parser_parse(parser_context_t *ctx,
                             uint8_t *data,
-                            uint16_t dataLen) {
+                            uint16_t dataLen,
+                            bool_t isMainnet) {
     parser_init(ctx, data, dataLen);
     parser_error_t err = parser_Tx(ctx);
     if (err != parser_ok)
         return err;
+
+    if (isMainnet != parser_IsMainnet(parser_tx_obj.chainID, parser_tx_obj.chainIDLen)) {
+        return parser_unexpected_chain;
+    }
+
+    if (parser_tx_obj.sendmsg.memoLen > TX_MEMOLEN_MAX) {
+        return parser_unexpected_buffer_end;
+    }
 
     return parser_ok;
 }
 
 uint8_t parser_getNumItems(parser_context_t *ctx) {
     if (parser_tx_obj.sendmsg.memoLen > 0)
-        return 5;
-
-    return 4;
-}
-
-parser_error_t parser_print(parser_context_t *ctx,
-                            int8_t fieldIdx,
-                            char *out, uint16_t outLen,
-                            uint8_t pageIdx, uint8_t *pageCount) {
-    return parser_no_data;
+        return FIELD_TOTAL_COUNT;
+    return FIELD_TOTAL_COUNT - 1;
 }
 
 parser_error_t parser_getItem(parser_context_t *ctx,
@@ -59,14 +83,19 @@ parser_error_t parser_getItem(parser_context_t *ctx,
     snprintf(outKey, outKeyLen, "?");
     snprintf(outValue, outValueLen, "?");
 
-#define UI_BUFFER 250
     uint8_t buffer[UI_BUFFER];
     MEMSET(buffer, 0, UI_BUFFER);
 
     parser_error_t err = parser_ok;
     *pageCount = 1;
     switch (displayIdx) {
-        case 0:     // Source
+        case FIELD_CHAINID:     // ChainID
+            snprintf(outKey, outKeyLen, "ChainID");
+            parser_arrayToString(outValue, outValueLen,
+                                 parser_tx_obj.chainID, parser_tx_obj.chainIDLen,
+                                 pageIdx, pageCount);
+            break;
+        case FIELD_SOURCE:     // Source
             snprintf(outKey, outKeyLen, "Source");
             err = parser_getAddress(parser_tx_obj.chainID, parser_tx_obj.chainIDLen,
                                     (char *) buffer, UI_BUFFER,
@@ -76,7 +105,7 @@ parser_error_t parser_getItem(parser_context_t *ctx,
             parser_arrayToString(outValue, outValueLen, buffer,
                                  strlen((char *) buffer), pageIdx, pageCount);
             break;
-        case 1:     // Destination
+        case FIELD_DESTINATION:     // Destination
             snprintf(outKey, outKeyLen, "Dest");
             err = parser_getAddress(parser_tx_obj.chainID, parser_tx_obj.chainIDLen,
                                     (char *) buffer, UI_BUFFER,
@@ -86,7 +115,7 @@ parser_error_t parser_getItem(parser_context_t *ctx,
             parser_arrayToString(outValue, outValueLen, buffer,
                                  strlen((char *) buffer), pageIdx, pageCount);
             break;
-        case 2: {
+        case FIELD_AMOUNT: {
             char ticker[IOV_TICKER_MAXLEN];
             err = parser_arrayToString(ticker, IOV_TICKER_MAXLEN,
                                        parser_tx_obj.sendmsg.amount.tickerPtr,
@@ -101,7 +130,7 @@ parser_error_t parser_getItem(parser_context_t *ctx,
                                               &parser_tx_obj.sendmsg.amount);
             break;
         }
-        case 3: {
+        case FIELD_FEE: {
             char ticker[IOV_TICKER_MAXLEN];
             err = parser_arrayToString(ticker, IOV_TICKER_MAXLEN,
                                        parser_tx_obj.sendmsg.amount.tickerPtr,
@@ -116,7 +145,7 @@ parser_error_t parser_getItem(parser_context_t *ctx,
                                               &parser_tx_obj.fees.coin);
             break;
         }
-        case 4:     // Memo
+        case FIELD_MEMO:     // Memo
             snprintf(outKey, outKeyLen, "Memo");
             err = parser_arrayToString((char *) buffer, UI_BUFFER,
                                        parser_tx_obj.sendmsg.memoPtr,

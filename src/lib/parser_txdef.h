@@ -14,6 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 #pragma once
+#include "iov.h"
 
 //version | len(chainID) | chainID      | nonce             | signBytes
 //4bytes  | uint8        | ascii string | int64 (bigendian) | serialized transaction
@@ -40,14 +41,9 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define HRP_TESTNET          "tiov"
-#define HRP_MAINNET          "iov"
-#define CHAINID_MAINNET      "iov-mainnet"
-#define CHAINID_MAINNET_LEN  11
-
 #define TX_BUFFER_MIN       4
 #define TX_CHAINIDLEN_MAX   20
-
+#define TX_MEMOLEN_MAX      128
 #define PBIDX_METADATA_SCHEMA      1
 
 typedef struct {

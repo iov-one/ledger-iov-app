@@ -25,16 +25,12 @@ extern "C" {
 const char *parser_getErrorDescription(parser_error_t err);
 
 //// parses and verifies a tx buffer
-parser_error_t parser_parse(parser_context_t *ctx, uint8_t *data, uint16_t dataLen);
+parser_error_t parser_parse(parser_context_t *ctx,
+                            uint8_t *data, uint16_t dataLen,
+                            bool_t isMainnet);
 
 //// returns the number of items in the current parsing context
 uint8_t parser_getNumItems(parser_context_t *ctx);
-
-// get a readable output for each field
-parser_error_t parser_print(parser_context_t *ctx,
-                            int8_t fieldIdx,
-                            char *out, uint16_t outLen,
-                            uint8_t pageIdx, uint8_t *pageCount);
 
 // retrieves a readable output for each field / page
 parser_error_t parser_getItem(parser_context_t *ctx,

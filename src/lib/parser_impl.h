@@ -33,6 +33,7 @@ typedef enum {
     parser_unexpected_field = 6,
     parser_duplicated_field = 7,
     parser_value_out_of_range = 8,
+    parser_unexpected_chain = 9,
 } parser_error_t;
 
 typedef struct {
@@ -85,6 +86,8 @@ parser_error_t parser_readPB_Root(parser_context_t *ctx);
 parser_error_t parser_readRoot(parser_context_t *ctx);
 
 parser_error_t parser_Tx(parser_context_t *ctx);
+
+bool_t parser_IsMainnet(const uint8_t *chainID, uint16_t chainIDLen);
 
 const char *parser_getHRP(const uint8_t *chainID, uint16_t chainIDLen);
 

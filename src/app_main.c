@@ -24,6 +24,7 @@
 #include "actions.h"
 #include "tx.h"
 #include "lib/crypto.h"
+#include "lib/iov.h"
 #include "zxmacros.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
@@ -151,10 +152,10 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
 
             switch (G_io_apdu_buffer[OFFSET_INS]) {
                 case INS_GET_VERSION: {
-#ifdef TESTING_ENABLED
-                    G_io_apdu_buffer[0] = 0xFF;
-#else
+#ifdef MAINNET_ENABLED
                     G_io_apdu_buffer[0] = 0;
+#else
+                    G_io_apdu_buffer[0] = 0xFF;
 #endif
                     G_io_apdu_buffer[1] = LEDGER_MAJOR_VERSION;
                     G_io_apdu_buffer[2] = LEDGER_MINOR_VERSION;
@@ -170,11 +171,12 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     extractBip32(rx, OFFSET_DATA);
 
                     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
-                    uint8_t testnet = (G_io_apdu_buffer[OFFSET_P2] != 0);
 
-                    app_set_hrp("iov");
-                    if (testnet)
-                        app_set_hrp("tiov");
+#ifdef MAINNET_ENABLED
+                    app_set_hrp(APP_MAINNET_HRP);
+#else
+                    app_set_hrp(APP_TESTNET_HRP);
+#endif
 
                     if (requireConfirmation) {
                         app_fill_address();
@@ -192,7 +194,13 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     if (!process_chunk(tx, rx, true))
                         THROW(APDU_CODE_OK);
 
-                    const char *error_msg = tx_parse();
+#ifdef MAINNET_ENABLED
+                    const bool_t isMainnet = bool_true;
+#else
+                    const bool_t isMainnet = bool_false;
+#endif
+                    const char *error_msg = tx_parse(isMainnet);
+
                     if (error_msg != NULL) {
                         int error_msg_length = strlen(error_msg);
                         os_memmove(G_io_apdu_buffer, error_msg, error_msg_length);

@@ -21,10 +21,15 @@ $(error BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
+APPNAME = "IOVTEST"
+ifndef TESTNET_ENABLED
+	DEFINES   += MAINNET_ENABLED
+	APPNAME = "IOV"
+endif
+
 # Main app configuration
-APPNAME = "IOV"
 APPVERSION_M=0
-APPVERSION_N=6
+APPVERSION_N=7
 APPVERSION_P=0
 
 APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path "44'/234'"
@@ -91,7 +96,6 @@ endif
 
 #Feature temporarily disabled
 DEFINES   += LEDGER_SPECIFIC
-#DEFINES += TESTING_ENABLED
 
 # Compiler, assembler, and linker
 

@@ -20,10 +20,10 @@
 
 #define MENU_MAIN_APP_LINE1 "IOV"
 
-#ifdef TESTING_ENABLED
-#define MENU_MAIN_APP_LINE2 "Web3"
+#ifdef MAINNET_ENABLED
+#define MENU_MAIN_APP_LINE2 "MAINNET"
 #else
-#define MENU_MAIN_APP_LINE2 "TEST!!!!"
+#define MENU_MAIN_APP_LINE2 "TESTNET"
 #endif
 
 #if defined(TARGET_NANOX)

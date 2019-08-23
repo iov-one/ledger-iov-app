@@ -22,12 +22,16 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define TRUE  1
-#define FALSE 0
+typedef enum {
+    bool_false = 0,
+    bool_true = 1,
+} bool_t;
 
-#define HRP_TESTNET     "tiov"
-#define HRP_MAINNET     "iov"
-#define CHAINID_MAINNET  "iov-mainnet"
+#define APP_MAINNET_HRP          "iov"
+#define APP_MAINNET_CHAINID      "iov-mainnet"
+#define APP_MAINNET_CHAINID_LEN   11
+
+#define APP_TESTNET_HRP          "tiov"
 
 #define IOV_PK_PREFIX      "sigs/ed25519/"
 #define IOV_PK_PREFIX_LEN  13

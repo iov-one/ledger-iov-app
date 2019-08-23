@@ -72,11 +72,12 @@ uint8_t *tx_get_buffer() {
     return buffering_get_buffer()->data;
 }
 
-const char *tx_parse() {
+const char *tx_parse(bool_t isMainnet) {
     uint8_t err = parser_parse(
         &ctx_parsed_tx,
         tx_get_buffer(),
-        tx_get_buffer_length());
+        tx_get_buffer_length(),
+        isMainnet);
 
     if (err != parser_ok) {
         return parser_getErrorDescription(err);

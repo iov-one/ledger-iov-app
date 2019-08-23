@@ -16,6 +16,7 @@
 #pragma once
 
 #include "os.h"
+#include "iov.h"
 
 typedef enum {
     tx_no_error = 0,
@@ -42,10 +43,10 @@ uint32_t tx_get_buffer_length();
 /// \return
 uint8_t *tx_get_buffer();
 
-/// Parse json message stored in transaction buffer
+/// Parse message stored in transaction buffer
 /// This function should be called as soon as full buffer data is loaded.
 /// \return It returns NULL if json is valid or error message otherwise.
-const char *tx_parse();
+const char *tx_parse(bool_t isMainnet);
 
 /// Return the number of items in the transaction
 uint8_t tx_getNumItems();
