@@ -175,6 +175,15 @@ void h_review_button_right() {
     UX_WAIT();
 }
 
+void splitValueField() {
+    print_value2("");
+    uint16_t vlen = strlen(viewdata.value);
+    if (vlen > MAX_CHARS_PER_VALUE2_LINE - 1) {
+        strcpy(viewdata.value2, viewdata.value + MAX_CHARS_PER_VALUE_LINE);
+        viewdata.value[MAX_CHARS_PER_VALUE_LINE] = 0;
+    }
+}
+
 //////////////////////////
 //////////////////////////
 //////////////////////////
@@ -186,6 +195,18 @@ void view_idle_show_impl() {
 }
 
 void view_address_show_impl() {
+#define KEYCHUNKSIZE    12
+    // move first part to key
+    MEMSET(viewdata.key, 0, MAX_CHARS_PER_KEY_LINE);
+    MEMCPY(viewdata.key, address, KEYCHUNKSIZE);
+
+    // move the remainder to
+    snprintf(viewdata.value,
+             MAX_CHARS_PER_VALUE1_LINE, "%s",
+             address + KEYCHUNKSIZE);
+
+    splitValueField();
+
     UX_DISPLAY(view_address, view_prepro);
 }
 

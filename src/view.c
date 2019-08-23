@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 view_t viewdata;
+const char *address;
 
 void h_address_accept(unsigned int _) {
     UNUSED(_);
@@ -88,18 +89,6 @@ void h_review_decrease() {
     }
 }
 
-
-inline void splitValueField() {
-#if defined(TARGET_NANOS)
-    print_value2("");
-    uint16_t vlen = strlen(viewdata.value);
-    if (vlen > MAX_CHARS_PER_VALUE2_LINE - 1) {
-        strcpy(viewdata.value2, viewdata.value + MAX_CHARS_PER_VALUE_LINE);
-        viewdata.value[MAX_CHARS_PER_VALUE_LINE] = 0;
-    }
-#endif
-}
-
 view_error_t h_review_update_data() {
     tx_error_t err = tx_no_error;
 
@@ -140,10 +129,7 @@ void view_idle_show(unsigned int ignored) {
 
 void view_address_show() {
     // Address has been placed in the output buffer
-    char *const address = (char *) (G_io_apdu_buffer + 32);
-    snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "Confirm address");
-    snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "%s", address);
-    splitValueField();
+    address = (char *) (G_io_apdu_buffer + 32);
     view_address_show_impl();
 }
 

@@ -39,6 +39,8 @@
 #define MAX_CHARS_HEXMESSAGE        40
 #endif
 
+extern const char *address;
+
 typedef struct {
     char key[MAX_CHARS_PER_KEY_LINE];
     char value[MAX_CHARS_PER_VALUE1_LINE];
@@ -65,6 +67,8 @@ typedef enum {
 #if defined(TARGET_NANOS)
 #define print_value2(...) snprintf(viewdata.value2, sizeof(viewdata.value2), __VA_ARGS__);
 #endif
+
+void splitValueField();
 
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////

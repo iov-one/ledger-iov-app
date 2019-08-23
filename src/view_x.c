@@ -171,6 +171,8 @@ void h_review_loop_end() {
     ux_flow_relayout();
 }
 
+void splitValueField() {}
+
 //////////////////////////
 //////////////////////////
 //////////////////////////
@@ -185,6 +187,9 @@ void view_idle_show_impl() {
 }
 
 void view_address_show_impl() {
+    snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "Confirm address");
+    snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "%s", address);
+
     ux_layout_bnnn_paging_reset();
     if(G_ux.stack_count == 0) {
         ux_stack_push();
