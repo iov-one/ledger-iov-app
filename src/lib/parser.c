@@ -50,13 +50,12 @@
 
 parser_error_t parser_parse(parser_context_t *ctx,
                             uint8_t *data,
-                            uint16_t dataLen,
-                            bool_t isMainnet) {
+                            uint16_t dataLen) {
     parser_init(ctx, data, dataLen);
-    parser_error_t err = parser_Tx(ctx);
-    if (err != parser_ok)
-        return err;
+    return  parser_Tx(ctx);
+}
 
+parser_error_t parser_validate(bool_t isMainnet) {
     if (isMainnet != parser_IsMainnet(parser_tx_obj.chainID, parser_tx_obj.chainIDLen)) {
         return parser_unexpected_chain;
     }

@@ -24,10 +24,12 @@ extern "C" {
 
 const char *parser_getErrorDescription(parser_error_t err);
 
-//// parses and verifies a tx buffer
+//// parses a tx buffer
 parser_error_t parser_parse(parser_context_t *ctx,
-                            uint8_t *data, uint16_t dataLen,
-                            bool_t isMainnet);
+                            uint8_t *data, uint16_t dataLen);
+
+//// verifies tx fields
+parser_error_t parser_validate(bool_t isMainnet);
 
 //// returns the number of items in the current parsing context
 uint8_t parser_getNumItems(parser_context_t *ctx);

@@ -76,9 +76,13 @@ const char *tx_parse(bool_t isMainnet) {
     uint8_t err = parser_parse(
         &ctx_parsed_tx,
         tx_get_buffer(),
-        tx_get_buffer_length(),
-        isMainnet);
+        tx_get_buffer_length());
 
+    if (err != parser_ok) {
+        return parser_getErrorDescription(err);
+    }
+
+    err = parser_validate(isMainnet);
     if (err != parser_ok) {
         return parser_getErrorDescription(err);
     }

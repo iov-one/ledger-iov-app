@@ -536,7 +536,7 @@ parser_error_t parser_Tx(parser_context_t *ctx) {
 
 bool_t parser_IsMainnet(const uint8_t *chainID, uint16_t chainIDLen) {
     if (chainIDLen != APP_MAINNET_CHAINID_LEN)
-        return bool_true;
+        return bool_false;
 
     const char *expectedChainID = APP_MAINNET_CHAINID;
     for (uint16_t i = 0; i < chainIDLen; i++) {
@@ -562,7 +562,8 @@ parser_error_t parser_getAddress(const uint8_t *chainID, uint16_t chainIDLen,
         return parser_unexpected_buffer_end;
     }
 
-    bech32EncodeFromBytes(addr, parser_getHRP(chainID, chainIDLen), ptr, len);
+    const char *hrp = parser_getHRP(chainID, chainIDLen);
+    bech32EncodeFromBytes(addr, hrp, ptr, len);
 
     return parser_ok;
 }
