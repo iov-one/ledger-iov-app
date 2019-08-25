@@ -42,7 +42,8 @@ extern "C" {
 #include <stddef.h>
 
 #define TX_BUFFER_MIN       4
-#define TX_CHAINIDLEN_MAX   20
+#define TX_CHAINIDLEN_MIN   4
+#define TX_CHAINIDLEN_MAX   32
 #define TX_MEMOLEN_MAX      128
 #define PBIDX_METADATA_SCHEMA      1
 

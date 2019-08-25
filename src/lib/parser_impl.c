@@ -225,6 +225,22 @@ parser_error_t _checkUppercaseLetters(const uint8_t *p, uint16_t len) {
     return parser_ok;
 }
 
+parser_error_t _checkChainIDValid(const uint8_t *p, uint16_t len) {
+    for (uint16_t i = 0; i < len; i++) {
+        uint8_t tmp = *(p + i);
+
+//        [a-zA-Z0-9_.-]
+        const uint8_t valid = (tmp >= 'a' && tmp <= 'z') ||
+                              (tmp >= 'A' && tmp <= 'Z') ||
+                              tmp == '_' || tmp == '.' || tmp == '-';
+
+        if (!valid) {
+            return parser_unexpected_characters;
+        }
+    }
+    return parser_ok;
+}
+
 #define DEFINE_CONTEXT() \
     parser_context_t ctx;   \
     parser_error_t err = parser_init_context(&ctx, bufferPtr, bufferLen);   \
@@ -452,11 +468,18 @@ parser_error_t parser_readRoot(parser_context_t *ctx) {
     parser_tx_obj.version = (uint32_t *) (ctx->buffer + 0);
     parser_tx_obj.chainIDLen = *(ctx->buffer + 4);
 
+    if (parser_tx_obj.chainIDLen < TX_CHAINIDLEN_MIN) {
+        return parser_unexpected_chain;
+    }
+
     if (parser_tx_obj.chainIDLen > TX_CHAINIDLEN_MAX) {
         return parser_unexpected_buffer_end;
     }
 
     parser_tx_obj.chainID = ctx->buffer + 5;
+    if (_checkChainIDValid(parser_tx_obj.chainID, parser_tx_obj.chainIDLen)){
+        return parser_unexpected_characters;
+    }
 
     const uint8_t *p_src = ctx->buffer + 5 + parser_tx_obj.chainIDLen;
     uint8_t *p_dst = (uint8_t *) &parser_tx_obj.nonce;
@@ -526,7 +549,7 @@ bool_t parser_IsMainnet(const uint8_t *chainID, uint16_t chainIDLen) {
 }
 
 const char *parser_getHRP(const uint8_t *chainID, uint16_t chainIDLen) {
-    if (parser_IsMainnet(chainID, chainIDLen)==bool_true)
+    if (parser_IsMainnet(chainID, chainIDLen) == bool_true)
         return APP_MAINNET_HRP;
 
     return APP_TESTNET_HRP;
