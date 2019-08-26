@@ -21,9 +21,9 @@
 #define MENU_MAIN_APP_LINE1 "IOV"
 
 #ifdef MAINNET_ENABLED
-#define MENU_MAIN_APP_LINE2 "MAINNET"
+#define MENU_MAIN_APP_LINE2 "Mainnet"
 #else
-#define MENU_MAIN_APP_LINE2 "TESTNET"
+#define MENU_MAIN_APP_LINE2 "Testnet"
 #endif
 
 #if defined(TARGET_NANOX)
