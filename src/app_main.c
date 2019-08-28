@@ -104,7 +104,7 @@ void extractBip32(uint32_t rx, uint32_t offset) {
 
     // Check all items are hardened
     for (int i = 0; i < BIP32_LEN_DEFAULT; i++) {
-        if ( (bip32Path[0] & 0x80000000) == 0) {
+        if ( (bip32Path[i] & 0x80000000) == 0) {
             THROW(APDU_CODE_DATA_INVALID);
         }
     }
