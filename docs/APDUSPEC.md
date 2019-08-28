@@ -67,16 +67,16 @@ The general structure of commands and responses is as follows:
 
 #### Command
 
-| Field      | Type           | Content                | Expected       |
-| ---------- | -------------- | ---------------------- | -------------- |
-| CLA        | byte (1)       | Application Identifier | 0x22           |
-| INS        | byte (1)       | Instruction ID         | 0x01           |
-| P1         | byte (1)       | Request User confirmation | No = 0      |
-| P2         | byte (1)       | ignored                |  |
-| L          | byte (1)       | Bytes in payload       | (depends)      |
-| Path[0]    | bytes (4)       | Derivation Path Data   | 44             |
-| Path[1]    | bytes (4)       | Derivation Path Data   | 354            |
-| Path[2]    | bytes (4)       | Derivation Path Data   | ??             |
+| Field      | Type           | Content                   | Expected           |
+| ---------- | -------------- | ------------------------- | ------------------ |
+| CLA        | byte (1)       | Application Identifier    | 0x22               |
+| INS        | byte (1)       | Instruction ID            | 0x01               |
+| P1         | byte (1)       | Request User confirmation | No = 0             |
+| P2         | byte (1)       | ignored                   |                    |
+| L          | byte (1)       | Bytes in payload          | (depends)          |
+| Path[0]    | bytes (4)      | Derivation Path Data      | 0x80000000 + 44    |
+| Path[1]    | bytes (4)      | Derivation Path Data      | 0x80000000 + 234   |
+| Path[2]    | bytes (4)      | Derivation Path Data      | 0x80000000 + index |
 
 #### Response
 
@@ -107,11 +107,11 @@ All other packets/chunks should contain message to sign
 
 *First Packet*
 
-| Field      | Type     | Content                | Expected  |
-| ---------- | -------- | ---------------------- | --------- |
-| Path[0]    | byte (4) | Derivation Path Data   | 44        |
-| Path[1]    | byte (4) | Derivation Path Data   | 234       |
-| Path[2]    | byte (4) | Derivation Path Data   | ?         |
+| Field      | Type     | Content                | Expected           |
+| ---------- | -------- | ---------------------- | ------------------ |
+| Path[0]    | byte (4) | Derivation Path Data   | 0x80000000 + 44    |
+| Path[1]    | byte (4) | Derivation Path Data   | 0x80000000 + 234   |
+| Path[2]    | byte (4) | Derivation Path Data   | 0x80000000 + index |
 
 *Other Chunks/Packets*
 
