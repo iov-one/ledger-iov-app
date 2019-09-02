@@ -232,6 +232,7 @@ parser_error_t _checkChainIDValid(const uint8_t *p, uint16_t len) {
 //        [a-zA-Z0-9_.-]
         const uint8_t valid = (tmp >= 'a' && tmp <= 'z') ||
                               (tmp >= 'A' && tmp <= 'Z') ||
+                              (tmp >= '0' && tmp <= '9') ||
                               tmp == '_' || tmp == '.' || tmp == '-';
 
         if (!valid) {
