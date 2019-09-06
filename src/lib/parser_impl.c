@@ -71,6 +71,8 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "Unexpected duplicated field";
         case parser_unexpected_chain:
             return "Unexpected chain";
+        case parser_unexpected_field_length:
+            return "Unexpected field length";
         default:
             return "Unrecognized error code";
     }
@@ -366,6 +368,34 @@ parser_error_t parser_readPB_Fees(const uint8_t *bufferPtr,
     return parser_ok;
 }
 
+parser_error_t parser_readPB_Multisig(parser_context_t *ctx, parser_multisig_t *m) {
+    union {
+        uint64_t v;
+        uint8_t bytes[8];
+    } data;
+
+    if (m->count >= PBIDX_MULTISIG_COUNT_MAX) {
+        return parser_value_out_of_range;
+    }
+
+    const uint8_t *p;
+    uint16_t pLen;
+    parser_error_t err = _readArray(ctx, &p, &pLen);
+    if (err != parser_ok) {
+        return err;
+    }
+
+    if (pLen != 8) {
+        return parser_unexpected_field_length;
+    }
+
+    MEMCPY(data.bytes, p, 8);
+    m->values[m->count] = uint64_from_BEarray(data.bytes);
+    m->count++;
+
+    return parser_ok;
+}
+
 parser_error_t parser_readPB_SendMsg(const uint8_t *bufferPtr,
                                      uint16_t bufferLen,
                                      parser_sendmsg_t *sendmsg) {
@@ -435,16 +465,19 @@ parser_error_t parser_readPB_Root(parser_context_t *ctx) {
 
         switch (FIELD_NUM(v)) {
             case PBIDX_TX_FEES: {
-                if (parser_tx_obj.feesPtr != NULL) {
-                    return parser_duplicated_field;
-                }
+                CHECK_NOT_DUPLICATED(parser_tx_obj.seen.fees)
                 err = _readArray(ctx, &parser_tx_obj.feesPtr, &parser_tx_obj.feesLen);
                 break;
             }
+            case PBIDX_TX_MULTISIG: {
+                // This is a repeated field
+                err = parser_readPB_Multisig(ctx, &parser_tx_obj.multisig);
+                if (err != parser_ok)
+                    return err;
+                break;
+            }
             case PBIDX_TX_SENDMSG: {
-                if (parser_tx_obj.sendmsgPtr != NULL) {
-                    return parser_duplicated_field;
-                }
+                CHECK_NOT_DUPLICATED(parser_tx_obj.seen.sendmsg)
                 err = _readArray(ctx, &parser_tx_obj.sendmsgPtr, &parser_tx_obj.sendmsgLen);
                 break;
             }
@@ -478,7 +511,7 @@ parser_error_t parser_readRoot(parser_context_t *ctx) {
     }
 
     parser_tx_obj.chainID = ctx->buffer + 5;
-    if (_checkChainIDValid(parser_tx_obj.chainID, parser_tx_obj.chainIDLen)){
+    if (_checkChainIDValid(parser_tx_obj.chainID, parser_tx_obj.chainIDLen)) {
         return parser_unexpected_characters;
     }
 

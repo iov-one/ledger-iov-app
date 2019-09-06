@@ -92,6 +92,14 @@ typedef struct {
     parser_coin_t coin;
 } parser_fees_t;
 
+#define PBIDX_MULTISIG_COUNT_MAX        8
+
+typedef struct {
+    // These bits are to avoid duplicated fields
+    uint8_t count;
+    uint64_t values[PBIDX_MULTISIG_COUNT_MAX];
+} parser_multisig_t;
+
 #define PBIDX_SENDMSG_METADATA          1
 #define PBIDX_SENDMSG_SOURCE            2
 #define PBIDX_SENDMSG_DESTINATION       3
@@ -132,6 +140,7 @@ typedef struct {
 } parser_sendmsg_t;
 
 #define PBIDX_TX_FEES           1
+#define PBIDX_TX_MULTISIG       4
 #define PBIDX_TX_SENDMSG        51
 
 typedef struct {
@@ -141,9 +150,18 @@ typedef struct {
     int64_t nonce;
 
     ////
+    struct {
+        unsigned int fees : 1;
+        unsigned int sendmsg : 1;
+    } seen;
+
     const uint8_t *feesPtr;
     uint16_t feesLen;
     parser_fees_t fees;             // PB Field 1
+
+    const uint8_t *multisigPtr;
+    uint16_t multisigLen;
+    parser_multisig_t multisig;        // PB Field 4
 
     const uint8_t *sendmsgPtr;
     uint16_t sendmsgLen;
@@ -152,6 +170,7 @@ typedef struct {
 
 void parser_coinInit(parser_coin_t *coin);
 void parser_feesInit(parser_fees_t *fees);
+void parser_multisigInit(parser_multisig_t *msg);
 void parser_sendmsgInit(parser_sendmsg_t *msg);
 void parser_txInit(parser_tx_t *tx);
 

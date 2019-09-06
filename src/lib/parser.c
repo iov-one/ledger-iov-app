@@ -20,7 +20,7 @@
 #include "iov.h"
 
 #ifdef MAINNET_ENABLED
-#define FIELD_TOTAL_COUNT 5
+#define FIELD_TOTAL_FIXCOUNT 5
 
 #define FIELD_CHAINID -100
 #define FIELD_SOURCE 0
@@ -29,7 +29,7 @@
 #define FIELD_FEE 3
 #define FIELD_MEMO 4
 #else
-#define FIELD_TOTAL_COUNT 6
+#define FIELD_TOTAL_FIXCOUNT 6
 
 #define FIELD_CHAINID 0
 #define FIELD_SOURCE 1
@@ -52,7 +52,7 @@ parser_error_t parser_parse(parser_context_t *ctx,
                             uint8_t *data,
                             uint16_t dataLen) {
     parser_init(ctx, data, dataLen);
-    return  parser_Tx(ctx);
+    return parser_Tx(ctx);
 }
 
 parser_error_t parser_validate(bool_t isMainnet) {
@@ -68,9 +68,21 @@ parser_error_t parser_validate(bool_t isMainnet) {
 }
 
 uint8_t parser_getNumItems(parser_context_t *ctx) {
-    if (parser_tx_obj.sendmsg.memoLen > 0)
-        return FIELD_TOTAL_COUNT;
-    return FIELD_TOTAL_COUNT - 1;
+    uint8_t fields = FIELD_TOTAL_FIXCOUNT;
+    fields += parser_tx_obj.multisig.count;
+    if (parser_tx_obj.sendmsg.memoLen == 0)
+        fields--;
+    return fields;
+}
+
+uint8_t UI_buffer[UI_BUFFER];
+
+int8_t parser_mapDisplayIdx(parser_context_t *ctx, int8_t displayIdx) {
+    if (parser_tx_obj.sendmsg.memoLen == 0 && displayIdx >= FIELD_MEMO) {
+        // SKIP Memo Field
+        return displayIdx + 1;
+    }
+    return displayIdx;
 }
 
 parser_error_t parser_getItem(parser_context_t *ctx,
@@ -82,12 +94,11 @@ parser_error_t parser_getItem(parser_context_t *ctx,
     snprintf(outKey, outKeyLen, "?");
     snprintf(outValue, outValueLen, "?");
 
-    uint8_t buffer[UI_BUFFER];
-    MEMSET(buffer, 0, UI_BUFFER);
+    MEMSET(UI_buffer, 0, UI_BUFFER);
 
     parser_error_t err = parser_ok;
     *pageCount = 1;
-    switch (displayIdx) {
+    switch (parser_mapDisplayIdx(ctx, displayIdx)) {
         case FIELD_CHAINID:     // ChainID
             snprintf(outKey, outKeyLen, "ChainID");
             parser_arrayToString(outValue, outValueLen,
@@ -97,22 +108,22 @@ parser_error_t parser_getItem(parser_context_t *ctx,
         case FIELD_SOURCE:     // Source
             snprintf(outKey, outKeyLen, "Source");
             err = parser_getAddress(parser_tx_obj.chainID, parser_tx_obj.chainIDLen,
-                                    (char *) buffer, UI_BUFFER,
+                                    (char *) UI_buffer, UI_BUFFER,
                                     parser_tx_obj.sendmsg.sourcePtr,
                                     parser_tx_obj.sendmsg.sourceLen);
             // page it
-            parser_arrayToString(outValue, outValueLen, buffer,
-                                 strlen((char *) buffer), pageIdx, pageCount);
+            parser_arrayToString(outValue, outValueLen, UI_buffer,
+                                 strlen((char *) UI_buffer), pageIdx, pageCount);
             break;
         case FIELD_DESTINATION:     // Destination
             snprintf(outKey, outKeyLen, "Dest");
             err = parser_getAddress(parser_tx_obj.chainID, parser_tx_obj.chainIDLen,
-                                    (char *) buffer, UI_BUFFER,
+                                    (char *) UI_buffer, UI_BUFFER,
                                     parser_tx_obj.sendmsg.destinationPtr,
                                     parser_tx_obj.sendmsg.destinationLen);
             // page it
-            parser_arrayToString(outValue, outValueLen, buffer,
-                                 strlen((char *) buffer), pageIdx, pageCount);
+            parser_arrayToString(outValue, outValueLen, UI_buffer,
+                                 strlen((char *) UI_buffer), pageIdx, pageCount);
             break;
         case FIELD_AMOUNT: {
             char ticker[IOV_TICKER_MAXLEN];
@@ -146,19 +157,31 @@ parser_error_t parser_getItem(parser_context_t *ctx,
         }
         case FIELD_MEMO:     // Memo
             snprintf(outKey, outKeyLen, "Memo");
-            err = parser_arrayToString((char *) buffer, UI_BUFFER,
+            err = parser_arrayToString((char *) UI_buffer, UI_BUFFER,
                                        parser_tx_obj.sendmsg.memoPtr,
                                        parser_tx_obj.sendmsg.memoLen,
                                        0, NULL);
-            asciify((char *) buffer);
+            asciify((char *) UI_buffer);
             // page it
-            parser_arrayToString(outValue, outValueLen, buffer,
-                                 strlen((char *) buffer),
+            parser_arrayToString(outValue, outValueLen, UI_buffer,
+                                 strlen((char *) UI_buffer),
                                  pageIdx, pageCount);
             break;
         default:
-            *pageCount = 0;
-            return parser_no_data;
+            // Handle variable fields
+            if (displayIdx >= parser_getNumItems(ctx)) {
+                *pageCount = 0;
+                return parser_no_data;
+            }
+
+            // Map variable field to multisig
+            uint8_t multisigIdx = displayIdx - FIELD_TOTAL_FIXCOUNT;
+            snprintf(outKey, outKeyLen, "Multisig");
+            if (parser_tx_obj.multisig.count > 1) {
+                snprintf(outKey, outKeyLen, "Multisig [%d/%d]", multisigIdx + 1, parser_tx_obj.multisig.count);
+            }
+
+            uint64_to_str(outValue, outValueLen, parser_tx_obj.multisig.values[multisigIdx]);
     }
 
     return err;

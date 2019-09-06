@@ -34,6 +34,7 @@ typedef enum {
     parser_duplicated_field = 7,
     parser_value_out_of_range = 8,
     parser_unexpected_chain = 9,
+    parser_unexpected_field_length = 10,
 } parser_error_t;
 
 typedef struct {

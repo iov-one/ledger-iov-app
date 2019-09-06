@@ -33,6 +33,10 @@ void parser_coinInit(parser_coin_t *coin) {
     coin->tickerLen = 0;
 }
 
+void parser_multisigInit(parser_multisig_t *v) {
+    v->count = 0;
+}
+
 void parser_feesInit(parser_fees_t *fees) {
     fees->seen.payer = 0;
     fees->seen.coin = 0;
@@ -75,6 +79,9 @@ void parser_sendmsgInit(parser_sendmsg_t *msg) {
 }
 
 void parser_txInit(parser_tx_t *tx) {
+    tx->seen.fees = 0;
+    tx->seen.sendmsg = 0;
+
     tx->version = NULL;
     tx->chainID = NULL;
     tx->nonce = 0;
@@ -86,4 +93,6 @@ void parser_txInit(parser_tx_t *tx) {
     tx->sendmsgPtr = NULL;
     tx->sendmsgLen = 0;
     parser_sendmsgInit(&tx->sendmsg);
+
+    parser_multisigInit(&tx->multisig);
 }
