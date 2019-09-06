@@ -132,8 +132,8 @@ parser_error_t parser_getItem(parser_context_t *ctx,
         case FIELD_FEE: {
             char ticker[IOV_TICKER_MAXLEN];
             err = parser_arrayToString(ticker, IOV_TICKER_MAXLEN,
-                                       parser_tx_obj.sendmsg.amount.tickerPtr,
-                                       parser_tx_obj.sendmsg.amount.tickerLen,
+                                       parser_tx_obj.fees.coin.tickerPtr,
+                                       parser_tx_obj.fees.coin.tickerLen,
                                        0, NULL);
             if (err != parser_ok)
                 return err;
