@@ -3,4 +3,5 @@
 
 This is a submodule that only contains the app source code according to Ledger specs.
 
-Please refer to the [Ledger-IOV](https://github.com/zondax/ledger-iov) for the complete source code, build instructions, etc. (unit tests, integration tests, documentation, etc.)
+Please refer to [iov-one/ledger-iov](https://github.com/iov-one/ledger-iov) for the complete source code,
+build instructions, etc. (unit tests, integration tests, documentation, etc.)
