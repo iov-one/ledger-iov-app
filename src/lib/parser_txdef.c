@@ -90,9 +90,11 @@ void parser_txInit(parser_tx_t *tx) {
     tx->feesLen = 0;
     parser_feesInit(&tx->fees);
 
+    tx->multisigPtr = NULL;
+    tx->multisigLen = 0;
+    parser_multisigInit(&tx->multisig);
+
     tx->sendmsgPtr = NULL;
     tx->sendmsgLen = 0;
     parser_sendmsgInit(&tx->sendmsg);
-
-    parser_multisigInit(&tx->multisig);
 }
