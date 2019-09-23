@@ -83,6 +83,7 @@ void parser_txInit(parser_tx_t *tx) {
     tx->seen.sendmsg = 0;
 
     tx->version = NULL;
+    tx->chainIDLen = 0;
     tx->chainID = NULL;
     tx->nonce = 0;
 
