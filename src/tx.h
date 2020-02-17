@@ -16,6 +16,7 @@
 #pragma once
 
 #include "os.h"
+#include "zxtypes.h"
 #include "coin.h"
 
 typedef enum {

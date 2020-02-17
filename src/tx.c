@@ -19,6 +19,7 @@
 #include "buffering.h"
 #include "lib/parser.h"
 #include <string.h>
+#include "zxmacros.h"
 
 #if defined(TARGET_NANOX)
 #define RAM_BUFFER_SIZE 8192
@@ -82,7 +83,7 @@ const char *tx_parse(bool_t isMainnet) {
         return parser_getErrorDescription(err);
     }
 
-    err = parser_validate(isMainnet);
+    err = parser_validate(&ctx_parsed_tx, isMainnet);
     if (err != parser_ok) {
         return parser_getErrorDescription(err);
     }
@@ -96,14 +97,18 @@ uint8_t tx_getNumItems() {
 
 tx_error_t tx_getItem(int8_t displayIdx,
                       char *outKey, uint16_t outKeyLen,
-                      char *outValue, uint16_t outValueLen,
+                      char *outVal, uint16_t outValLen,
                       uint8_t pageIdx, uint8_t *pageCount) {
     tx_error_t err = tx_no_error;
+
+    if (displayIdx < 0 || displayIdx > tx_getNumItems()) {
+        return tx_no_data;
+    }
 
     err = (tx_error_t) parser_getItem(&ctx_parsed_tx,
                                       displayIdx,
                                       outKey, outKeyLen,
-                                      outValue, outValueLen,
+                                      outVal, outValLen,
                                       pageIdx, pageCount);
 
     if (*pageCount > 1) {
@@ -114,7 +119,9 @@ tx_error_t tx_getItem(int8_t displayIdx,
     }
 
     // Convert error codes
-    if (err == parser_no_data)
+    if (err == parser_no_data ||
+        err == parser_display_idx_out_of_range ||
+        err == parser_display_page_out_of_range)
         return tx_no_data;
 
     if (err == parser_ok)

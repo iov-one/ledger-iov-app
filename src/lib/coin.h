@@ -22,10 +22,8 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-typedef enum {
-    bool_false = 0,
-    bool_true = 1,
-} bool_t;
+#define BIP32_PATH_0                    (0x80000000 | 0x2cu)
+#define BIP32_PATH_1                    (0x80000000 | 0xeau)
 
 #define APP_MAINNET_HRP          "iov"
 #define APP_MAINNET_CHAINID      "iov-mainnet"

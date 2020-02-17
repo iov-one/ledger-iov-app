@@ -18,22 +18,26 @@
 #include "coin.h"
 #include <bech32.h>
 
-uint32_t bip32Path[BIP32_LEN_DEFAULT];
+uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
-void crypto_extractPublicKey(uint32_t bip32Path[BIP32_LEN_DEFAULT], uint8_t *pubKey) {
+void crypto_extractPublicKey(const uint32_t hdPath[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
+
+        if (pubKeyLen < PK_LEN) {
+        return;
+    }
 
     // Generate keys
     os_perso_derive_node_bip32_seed_key(
             HDW_ED25519_SLIP10,
             CX_CURVE_Ed25519,
-            bip32Path,
-            BIP32_LEN_DEFAULT,
+            hdPath,
+            HDPATH_LEN_DEFAULT,
             privateKeyData,
             NULL,
             NULL,
@@ -65,8 +69,8 @@ uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t
     os_perso_derive_node_bip32_seed_key(
             HDW_ED25519_SLIP10,
             CX_CURVE_Ed25519,
-            bip32Path,
-            BIP32_LEN_DEFAULT,
+            hdPath,
+            HDPATH_LEN_DEFAULT,
             privateKeyData,
             NULL,
             NULL,
@@ -93,7 +97,7 @@ uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t
 }
 #else
 
-void crypto_extractPublicKey(uint32_t path[BIP32_LEN_DEFAULT], uint8_t *pubKey) {
+void crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
     // Empty version for non-Ledger devices
     MEMSET(pubKey, 0, 32);
 }
@@ -122,13 +126,21 @@ void crypto_set_hrp(char *p) {
     hrp = p;
 }
 
+typedef struct {
+    uint8_t publicKey[PK_LEN];
+    char addrStr[30];
+
+} __attribute__((packed)) answer_t;
+
 uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len) {
-    if (buffer_len < ED25519_PK_LEN + 30) {
+    if (buffer_len < sizeof(answer_t)) {
         return 0;
     }
+    MEMZERO(buffer, buffer_len);
+    answer_t *const answer = (answer_t *) buffer;
 
     // extract pubkey (first 32 bytes)
-    crypto_extractPublicKey(bip32Path, buffer);
+    crypto_extractPublicKey(hdPath, answer->publicKey, sizeof_field(answer_t, publicKey));
 
     char tmp[IOV_PK_PREFIX_LEN + ED25519_PK_LEN];
     strcpy(tmp, IOV_PK_PREFIX);
@@ -136,10 +148,8 @@ uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len) {
 
     //
     uint8_t hash[CX_SHA256_SIZE];
-    cx_hash_sha256((uint8_t *) tmp, IOV_PK_PREFIX_LEN + ED25519_PK_LEN,
-                   hash, CX_SHA256_SIZE);
+    cx_hash_sha256((uint8_t *) tmp, IOV_PK_PREFIX_LEN + ED25519_PK_LEN, hash, CX_SHA256_SIZE);
 
-    char *addr = (char *) (buffer + ED25519_PK_LEN);
-    bech32EncodeFromBytes(addr, hrp, hash, 20);
-    return ED25519_PK_LEN + strlen(addr);
+    bech32EncodeFromBytes(answer->addrStr, hrp, hash, 20);
+    return ED25519_PK_LEN + strlen(answer->addrStr);
 }

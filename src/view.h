@@ -29,7 +29,7 @@
 /// view_init (initializes UI)
 void view_init();
 
-/// view_idle (idle view - main menu + status)
+/// view_idle_show (idle view - main menu + status)
 void view_idle_show(unsigned int ignored);
 
 /// view_error (error view)
