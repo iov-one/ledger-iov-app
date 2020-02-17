@@ -22,8 +22,8 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define BIP32_PATH_0                    (0x80000000 | 0x2cu)
-#define BIP32_PATH_1                    (0x80000000 | 0xeau)
+#define HDPATH_0_DEFAULT     (0x80000000u | 0x2cu)
+#define HDPATH_1_DEFAULT     (0x80000000u | 0xeau)
 
 #define APP_MAINNET_HRP          "iov"
 #define APP_MAINNET_CHAINID      "iov-mainnet"

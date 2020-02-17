@@ -23,32 +23,43 @@ uint32_t hdPath[HDPATH_LEN_DEFAULT];
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
-void crypto_extractPublicKey(const uint32_t hdPath[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
+void crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
 
-        if (pubKeyLen < PK_LEN) {
+    if (pubKeyLen < PK_LEN) {
         return;
     }
 
-    // Generate keys
-    os_perso_derive_node_bip32_seed_key(
-            HDW_ED25519_SLIP10,
-            CX_CURVE_Ed25519,
-            hdPath,
-            HDPATH_LEN_DEFAULT,
-            privateKeyData,
-            NULL,
-            NULL,
-            0);
+    BEGIN_TRY
+    {
+        TRY {
+            SAFE_HEARTBEAT(
+                os_perso_derive_node_bip32_seed_key(
+                        HDW_ED25519_SLIP10,
+                        CX_CURVE_Ed25519,
+                        path,
+                        HDPATH_LEN_DEFAULT,
+                        privateKeyData,
+                        NULL,
+                        NULL,
+                        0)
+            );
 
-    cx_ecfp_init_private_key(CX_CURVE_Ed25519, privateKeyData, 32, &cx_privateKey);
-    cx_ecfp_init_public_key(CX_CURVE_Ed25519, NULL, 0, &cx_publicKey);
-    cx_ecfp_generate_pair(CX_CURVE_Ed25519, &cx_publicKey, &cx_privateKey, 1);
-    MEMSET(privateKeyData, 0, 32);
+            SAFE_HEARTBEAT(cx_ecfp_init_private_key(CX_CURVE_Ed25519, privateKeyData, 32, &cx_privateKey));
+            SAFE_HEARTBEAT(cx_ecfp_init_public_key(CX_CURVE_Ed25519, NULL, 0, &cx_publicKey));
+            SAFE_HEARTBEAT(cx_ecfp_generate_pair(CX_CURVE_Ed25519, &cx_publicKey, &cx_privateKey, 1));
+        }
+        FINALLY {
+            MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
+            MEMZERO(privateKeyData, 32);
+        }
+    }
+    END_TRY;
 
     // Format pubkey
+    // FIXME: Review this
     for (int i = 0; i < 32; i++) {
         pubKey[i] = cx_publicKey.W[64 - i];
     }
@@ -59,39 +70,50 @@ void crypto_extractPublicKey(const uint32_t hdPath[HDPATH_LEN_DEFAULT], uint8_t 
 }
 
 uint16_t crypto_sign(uint8_t *signature, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
-    // Hash
     uint8_t messageDigest[CX_SHA512_SIZE];
     cx_hash_sha512(message, messageLen, messageDigest, CX_SHA512_SIZE);
 
-    // Generate keys
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
-    os_perso_derive_node_bip32_seed_key(
-            HDW_ED25519_SLIP10,
-            CX_CURVE_Ed25519,
-            hdPath,
-            HDPATH_LEN_DEFAULT,
-            privateKeyData,
-            NULL,
-            NULL,
-            0);
-    cx_ecfp_init_private_key(CX_CURVE_Ed25519, privateKeyData, 32, &cx_privateKey);
-
-    // Sign
+    int signatureLength;
     unsigned int info = 0;
-    int signatureLength = cx_eddsa_sign(&cx_privateKey,
-                                        CX_LAST,
-                                        CX_SHA512,
-                                        messageDigest,
-                                        CX_SHA512_SIZE,
-                                        NULL,
-                                        0,
-                                        signature,
-                                        signatureMaxlen,
-                                        &info);
 
-    MEMSET(&cx_privateKey, 0, sizeof(cx_privateKey));
-    MEMSET(privateKeyData, 0, 32);
+    BEGIN_TRY
+    {
+        TRY
+        {
+            // Generate keys
+            SAFE_HEARTBEAT(os_perso_derive_node_bip32_seed_key(HDW_ED25519_SLIP10,
+                                                               CX_CURVE_Ed25519,
+                                                               hdPath,
+                                                               HDPATH_LEN_DEFAULT,
+                                                               privateKeyData,
+                                                               NULL,
+                                                               NULL,
+                                                               0));
+
+            SAFE_HEARTBEAT(cx_ecfp_init_private_key(CX_CURVE_Ed25519, privateKeyData, 32, &cx_privateKey));
+
+            // Sign
+            SAFE_HEARTBEAT(
+                signatureLength = cx_eddsa_sign(&cx_privateKey,
+                                                CX_LAST,
+                                                CX_SHA512,
+                                                messageDigest,
+                                                CX_SHA512_SIZE,
+                                                NULL,
+                                                0,
+                                                signature,
+                                                signatureMaxlen,
+                                                &info));
+
+        }
+        FINALLY {
+            MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
+            MEMZERO(privateKeyData, 32);
+        }
+    }
+    END_TRY;
 
     return signatureLength;
 }
