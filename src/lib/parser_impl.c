@@ -18,7 +18,7 @@
 #include <bech32.h>
 #include "parser_impl.h"
 #include "parser_txdef.h"
-#include "iov.h"
+#include "coin.h"
 
 parser_tx_t parser_tx_obj;
 

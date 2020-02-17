@@ -24,7 +24,7 @@
 #include "actions.h"
 #include "tx.h"
 #include "lib/crypto.h"
-#include "lib/iov.h"
+#include "lib/coin.h"
 #include "zxmacros.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];

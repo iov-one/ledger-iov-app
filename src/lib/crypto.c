@@ -15,7 +15,7 @@
 ********************************************************************************/
 
 #include "crypto.h"
-#include "iov.h"
+#include "coin.h"
 #include <bech32.h>
 
 uint32_t bip32Path[BIP32_LEN_DEFAULT];

@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <zxmacros.h>
 #include "parser.h"
-#include "iov.h"
+#include "coin.h"
 
 #ifdef MAINNET_ENABLED
 #define FIELD_TOTAL_FIXCOUNT 5
