@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 ZondaX GmbH
+*   (c) 2020 ZondaX GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -14,16 +14,27 @@
 *  limitations under the License.
 ********************************************************************************/
 
-#pragma once
-
 #include <stdint.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-size_t parseHexString(uint8_t *out, uint16_t outLen, const char *input);
+typedef enum {
+    no_error = 0,
+    invalid_derPrefix,
+    invalid_payloadLen,
+    invalid_rmaker,
+    invalid_rLen,
+    invalid_smarker,
+    invalid_sLen,
+} err_convert_e;
+
+err_convert_e convertDERtoRSV(const uint8_t *inSignatureDER,
+                              unsigned int inInfo,
+                              uint8_t *outR,
+                              uint8_t *outS,
+                              uint8_t *outV);
 
 #ifdef __cplusplus
 }

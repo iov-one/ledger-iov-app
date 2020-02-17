@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-size_t parseHexString(uint8_t *out, uint16_t outLen, const char *input);
+typedef enum {
+    bool_false = 0,
+    bool_true = 1,
+} bool_t;
 
 #ifdef __cplusplus
 }

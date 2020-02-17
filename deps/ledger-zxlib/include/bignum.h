@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 ZondaX GmbH
+*   (c) 2019 ZondaX GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-size_t parseHexString(uint8_t *out, uint16_t outLen, const char *input);
+#include <zxmacros.h>
+#include <zxtypes.h>
+
+bool_t bignumLittleEndian_bcdprint(char *outBuffer, uint16_t outBufferLen, const uint8_t *inBCD, uint16_t inBCDLen);
+void bignumLittleEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_t *binValue, uint16_t binValueLen);
+
+bool_t bignumBigEndian_bcdprint(char *outBuffer, uint16_t outBufferLen, const uint8_t *bcdIn, uint16_t bcdInLen);
+void bignumBigEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_t *binValue, uint16_t binValueLen);
+
 
 #ifdef __cplusplus
 }
